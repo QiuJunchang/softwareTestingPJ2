@@ -27,21 +27,21 @@ if __name__ == "__main__":
 
     # 创建输入管理器实例
     input_manager = InputManager(storage_dir)
-    input_manager.load_configuration_table("sample2")  # 加载配置表
+    input_manager.load_configuration_table("sample4")  # 加载配置表
 
-    f_runner = FunctionCoverageRunner(sample2)
-    seeds = load_object("corpus/corpus_2")
+    f_runner = FunctionCoverageRunner(sample4)
+    seeds = load_object("corpus/corpus_4")
 
     grey_fuzzer = PathGreyBoxFuzzer(seeds=seeds, schedule=CoveragePowerSchedule(), is_print=True)
     start_time = time.time()
-    grey_fuzzer.runs(f_runner, run_time=300)
+    grey_fuzzer.runs(f_runner, run_time=400)
 
     # 保存结果
     res = Result(grey_fuzzer.covered_line, set(grey_fuzzer.crash_map.values()), start_time, time.time())
-    dump_object("_result" + os.sep + "Sample-2.pkl", res)
+    dump_object("_result" + os.sep + "Sample-4.pkl", res)
 
     # 保存配置表
-    input_manager.save_configuration_table("sample2")
+    input_manager.save_configuration_table("sample4")
 
     # 输出结果
-    print(load_object("_result" + os.sep + "Sample-2.pkl"))
+    print(load_object("_result" + os.sep + "Sample-4.pkl"))
