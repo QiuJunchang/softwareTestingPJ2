@@ -14,6 +14,8 @@ class PowerSchedule:
             seed.energy = 1
 
     def normalized_energy(self, population: List[Seed]) -> List[float]:
+        if not population:
+            return []
         """Normalize energy"""
         energy = list(map(lambda seed: seed.energy, population))
         sum_energy = sum(energy)  # Add up all values in energy

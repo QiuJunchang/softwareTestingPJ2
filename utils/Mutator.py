@@ -33,12 +33,12 @@ def flip_random_bits(s: str) -> str:
         N = bit_length  # 调整 N 以避免越界
 
     pos = random.randint(0, bit_length - N)
-    
+
     for i in range(N):
         byte_index = (pos + i) // 8
         bit_index = (pos + i) % 8
         bytes_list[byte_index] ^= 1 << bit_index
-    
+
     return bytes_list.decode('utf-8', errors='ignore')
 
 
@@ -53,12 +53,12 @@ def arithmetic_random_bytes(s: str) -> str:
     注意：不要越界；如果出现单个字节在添加随机数之后，可以通过取模操作使该字节落在 [0, 255] 之间
     """
     bytes_list = bytearray(s, 'utf-8')
-    
+
     if len(bytes_list) == 0:
         return s  # 如果输入字符串为空，直接返回
 
     N = random.choice([1, 2, 4])
-    
+
     if len(bytes_list) <= N:
         N = len(bytes_list)
 
@@ -83,14 +83,14 @@ def interesting_random_bytes(s: str) -> str:
     interesting_values_1 = [0, 1, 255]
     interesting_values_2 = [0, 1, 32767, 65535]
     interesting_values_4 = [0, 1, 2147483647, 4294967295]
-    
+
     bytes_list = bytearray(s, 'utf-8')
-    
+
     if len(bytes_list) == 0:
         return s  # 如果输入字符串为空，直接返回原字符串
 
     N = random.choice([1, 2, 4])
-    
+
     if len(bytes_list) < N:
         N = len(bytes_list)
 
@@ -105,7 +105,7 @@ def interesting_random_bytes(s: str) -> str:
     elif N == 4:
         value = random.choice(interesting_values_4)
         struct.pack_into('I', bytes_list, pos, value)
-    
+
     return bytes_list.decode('utf-8', errors='ignore')
 
 
@@ -122,7 +122,8 @@ def havoc_random_insert(s: str) -> str:
         end = random.randint(start, len(s))
         return s[:pos] + s[start:end] + s[pos:]
     else:
-        random_bytes = ''.join(chr(random.randint(32, 127)) for _ in range(random.randint(1, 10)))
+        random_bytes = ''.join(chr(random.randint(32, 127))
+                               for _ in range(random.randint(1, 10)))
         return s[:pos] + random_bytes + s[pos:]
 
 
@@ -136,7 +137,7 @@ def havoc_random_replace(s: str) -> str:
 
     start = random.randint(0, len(s) - 1)
     end = random.randint(start, len(s))
-    
+
     if random.random() < 0.75:
         if len(s) == 0:
             return s  # 再次检查空字符串
@@ -144,8 +145,40 @@ def havoc_random_replace(s: str) -> str:
         replacement_end = random.randint(replacement_start, len(s))
         replacement = s[replacement_start:replacement_end]
     else:
-        replacement = ''.join(chr(random.randint(32, 127)) for _ in range(end - start))
-    
+        replacement = ''.join(chr(random.randint(32, 127))
+                              for _ in range(end - start))
+
+    return s[:start] + replacement + s[end:]
+
+
+def delete_random_byte(s: str) -> str:
+    """
+    从 s 中随机删除一个字节
+    """
+    bytes_list = bytearray(s, 'utf-8')
+    if not bytes_list:
+        return s
+
+    pos = random.randint(0, len(bytes_list) - 1)
+    return (bytes_list[:pos] + bytes_list[pos + 1:]).decode('utf-8', errors='ignore')
+
+
+def insert_special_sequences(s: str) -> str:
+    special_sequences = ['\n', '\t', '\0', '\"', '\'',
+                         '\\', '%', '%%', '<script>', '--', '/*', '*/']
+    pos = random.randint(0, len(s))
+    special_sequence = random.choice(special_sequences)
+    return s[:pos] + special_sequence + s[pos:]
+
+
+def replace_with_special_sequences(s: str) -> str:
+    if not s:
+        return s
+    start = random.randint(0, len(s) - 1)
+    end = random.randint(start, len(s))
+    special_sequences = ['\n', '\t', '\0', '\"', '\'',
+                         '\\', '%', '%%', '<script>', '--', '/*', '*/']
+    replacement = random.choice(special_sequences)
     return s[:start] + replacement + s[end:]
 
 
@@ -159,9 +192,16 @@ class Mutator:
             arithmetic_random_bytes,
             interesting_random_bytes,
             havoc_random_insert,
-            havoc_random_replace
+            havoc_random_replace,
+            delete_random_byte,
+            insert_special_sequences,
+            replace_with_special_sequences
         ]
 
     def mutate(self, inp: Any) -> Any:
-        mutator = random.choice(self.mutators)
-        return mutator(inp)
+        s = inp
+        mutator_times = random.randint(1,5)
+        for _ in range(mutator_times):            
+            mutator = random.choice(self.mutators)
+            s = mutator(s)
+        return s
